@@ -1,4 +1,5 @@
 import { addAnswerToGroupQuestion } from "../services/answer.service.js";
+import { getGroupQuestionsWithAnswers } from "../services/answer.service.js";
 
 export const handleCreateAnswer = async (req, res, next) => {
     /*
@@ -80,6 +81,79 @@ export const handleCreateAnswer = async (req, res, next) => {
             resultType: "SUCCESS",
             error: null,
             success: newAnswer,
+        });
+    } catch (error) {
+        console.error(error);
+        next(error); // 에러 미들웨어로 전달
+    }
+};
+
+
+// controllers/groupQuestion.controller.js
+export const handleGetGroupQuestionList = async (req, res, next) => {
+    /*
+    #swagger.summary = '그룹의 질문 리스트와 답변 조회 API'
+    #swagger.description = '특정 그룹(groupId)의 질문 리스트와 각 질문의 답변을 조회합니다.'
+    #swagger.parameters['groupId'] = {
+        in: 'path',
+        description: '조회할 그룹의 ID',
+        required: true,
+        type: 'integer',
+        example: 1
+    }
+    #swagger.responses[200] = {
+        description: '그룹의 질문과 답변 조회 성공',
+        schema: {
+            resultType: 'SUCCESS',
+            error: null,
+            success: [
+                {
+                    id: 1,
+                    groupId: 1,
+                    questionId: 1,
+                    createdAt: '2025-01-20T12:00:00.000Z',
+                    updatedAt: '2025-01-20T12:00:00.000Z',
+                    question: {
+                        id: 1,
+                        content: '이 질문은 테스트 질문입니다.',
+                        createdAt: '2025-01-20T12:00:00.000Z',
+                        updatedAt: '2025-01-20T12:00:00.000Z'
+                    },
+                    answers: [
+                        {
+                            id: 1,
+                            userId: 2,
+                            content: '이 답변은 테스트 데이터입니다.',
+                            createdAt: '2025-01-20T12:00:00.000Z',
+                            updatedAt: '2025-01-20T12:00:00.000Z',
+                            user: {
+                                id: 2,
+                                nickname: 'testUser'
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    */
+    try {
+        const groupId = parseInt(req.params.groupId);
+
+        if (!groupId) {
+            return res.status(400).json({
+                resultType: "FAIL",
+                error: "groupId가 필요합니다.",
+            });
+        }
+
+        // 서비스 호출하여 질문 및 답변 조회
+        const groupQuestions = await getGroupQuestionsWithAnswers(groupId);
+
+        res.status(200).json({
+            resultType: "SUCCESS",
+            error: null,
+            success: groupQuestions,
         });
     } catch (error) {
         console.error(error);

@@ -1,5 +1,6 @@
 // services/answer.service.js
 import { findGroupQuestionById, createAnswerInDatabase } from "../repositories/answer.repository.js";
+import { findGroupQuestionsWithAnswers } from "../repositories/answer.repository.js";
 
 export const addAnswerToGroupQuestion = async (groupQuestionId, content) => {
     // groupQuestionId가 존재하는지 확인
@@ -18,4 +19,31 @@ export const addAnswerToGroupQuestion = async (groupQuestionId, content) => {
         createdAt: newAnswer.createdAt,
         updatedAt: newAnswer.updatedAt,
     };
+};
+
+
+
+export const getGroupQuestionsWithAnswers = async (groupId) => {
+    // 그룹의 질문과 답변 조회
+    const groupQuestions = await findGroupQuestionsWithAnswers(groupId);
+
+    return groupQuestions.map((groupQuestion) => ({
+        id: groupQuestion.id,
+        groupId: groupQuestion.groupId,
+        questionId: groupQuestion.questionId,
+        createdAt: groupQuestion.createdAt,
+        updatedAt: groupQuestion.updatedAt,
+        question: {
+            id: groupQuestion.question.id,
+            content: groupQuestion.question.content,
+            createdAt: groupQuestion.question.createdAt,
+            updatedAt: groupQuestion.question.updatedAt,
+        },
+        answers: groupQuestion.answers.map((answer) => ({
+            id: answer.id,
+            content: answer.content,
+            createdAt: answer.createdAt,
+            updatedAt: answer.updatedAt,
+        })),
+    }));
 };
