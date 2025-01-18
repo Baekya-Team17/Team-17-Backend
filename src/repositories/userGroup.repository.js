@@ -24,3 +24,21 @@ export const getUserGroupsByUserId = async (userId) => {
         },
     });
 };
+
+export const isUserInGroup = async (groupId, userId) => {
+    const userGroup = await prisma.userGroup.findFirst({
+        where: { groupId: groupId, userId: userId },
+    });
+
+    return !!userGroup; // 해당 관계가 존재하면 true 반환, 그렇지 않으면 false
+};
+
+
+
+export const getRoleByUserIdAndGroupId = async (userId, groupId) => {
+    const userGroup = await prisma.userGroup.findFirst({
+        where: { userId: userId, groupId: groupId }, // 필드 이름 수정
+    });
+
+    return userGroup ? userGroup.roleInGroup : null; // Prisma 모델의 필드 이름 확인
+};
