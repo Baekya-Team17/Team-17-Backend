@@ -20,11 +20,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           cat >>~/.ssh/config <<END
-<<<<<<< HEAD
           Host team17
-=======
           Host playground-umc-7th
->>>>>>> feature/questions
             HostName $EC2_HOST
             User $EC2_USER
             IdentityFile ~/.ssh/id_rsa
