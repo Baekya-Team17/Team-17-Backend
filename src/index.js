@@ -5,6 +5,8 @@ import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
 import userRoutes from "./routes/user.routes.js";
+import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
+import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
 
 
 dotenv.config();
@@ -41,56 +43,62 @@ app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형
 
 //멤버 라우트
 app.use('/api/users', userRoutes);
+// 보호된 API
+app.use("/api/protected", protectedRoutes);
+// 질문 관련 라우트 추가
+app.use("/api/questions", questionRoutes);
 
 
 app.use(
-  "/docs",
-  swaggerUiExpress.serve,
-  swaggerUiExpress.setup({}, {
-    swaggerOptions: {
-      url: "/openapi.json",
-    },
-  })
+    "/docs",
+    swaggerUiExpress.serve,
+    swaggerUiExpress.setup({}, {
+      swaggerOptions: {
+        url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
+      },
+    })
 );
 
 app.get("/openapi.json", async (req, res, next) => {
-  // #swagger.ignore = true
   const options = {
     openapi: "3.0.0",
     disableLogs: true,
     writeOutputFile: false,
   };
-  const outputFile = "/dev/null"; // 파일 출력은 사용하지 않습니다.
-  const routes = ["./src/index.js"];
+  const outputFile = "/dev/null"; // 파일로 저장하지 않음
+  const routes = [
+    "./src/index.js",
+    "./src/routes/user.routes.js",
+    "./src/routes/protected.routes.js",
+    "./src/routes/question.routes.js", // 질문 라우트 추가
+  ];
   const doc = {
     info: {
       title: "team17",
-      description: "team17 테스트 문서서",
+      description: "team17 테스트 문서",
     },
     host: "localhost:3000",
     components: {
       securitySchemes: {
-        OAuth2: {
-          type: 'oauth2',
-          flows: {
-            authorizationCode: {
-              authorizationUrl: 'http://localhost:3000/oauth2/login/google',
-              tokenUrl: 'http://localhost:3000/oauth2/callback/google',
-              scopes: {
-                read: 'Grants read access',
-                write: 'Grants write access',
-                admin: 'Grants access to admin operations'
-              }
-            }
-          }
-        }
-      }
-    }
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT", // JWT 형식
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   };
 
   const result = await swaggerAutogen(options)(outputFile, routes, doc);
   res.json(result ? result.data : null);
 });
+
+
 
 
 app.get('/', (req, res) => {
