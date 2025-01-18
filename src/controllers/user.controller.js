@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/jwt.utils.js";
 
 export const registerUser = async (req, res) => {
-    const { userId, email, password, name } = req.body;
+    const { nickname, email, password, name } = req.body;
 
     try {
         // 비밀번호 해싱
@@ -11,7 +11,7 @@ export const registerUser = async (req, res) => {
 
         // 중복된 userId 확인
         const existingUser = await prisma.user.findUnique({
-            where: { userId },
+            where: { nickname },
         });
         if (existingUser) {
             return res.status(400).json({ error: "User ID already in use" });
@@ -20,7 +20,7 @@ export const registerUser = async (req, res) => {
         // 사용자 생성
         const user = await prisma.user.create({
             data: {
-                userId, // 사용자가 입력한 userId
+                nickname, // 사용자가 입력한 userId
                 email,
                 password: hashedPassword,
                 name,

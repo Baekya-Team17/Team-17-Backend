@@ -4,6 +4,7 @@ import express from 'express';          // -> ES Module
 import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
+import { handleCreateGroup, handleListGroups, handleInviteUserToGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
 import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
@@ -105,7 +106,12 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-// 라우팅 코드 입력 부분 
+app.post('/groups', handleCreateGroup);
+
+app.get('/groups', handleListGroups)
+
+
+app.post('/groups/:groupId', handleInviteUserToGroup)
 
 
 
