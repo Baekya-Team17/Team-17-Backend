@@ -7,7 +7,8 @@ import swaggerUiExpress from "swagger-ui-express";
 import { handleCreateGroup, handleListGroups, handleInviteUserToGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
-import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
+// import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
+import { authenticateToken } from "./utils/jwt.utils.js";
 
 
 dotenv.config();
@@ -43,21 +44,21 @@ app.use(express.json());                    // request의 본문을 json으로 �
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 
 //멤버 라우트
-app.use('/api/users', userRoutes);
+app.use('/', userRoutes);
 // 보호된 API
-app.use("/api/protected", protectedRoutes);
+app.use("/", protectedRoutes);
 // 질문 관련 라우트 추가
-app.use("/api/questions", questionRoutes);
+// app.use("/", questionRoutes);
 
 
 app.use(
-    "/docs",
-    swaggerUiExpress.serve,
-    swaggerUiExpress.setup({}, {
-      swaggerOptions: {
-        url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
-      },
-    })
+  "/docs",
+  swaggerUiExpress.serve,
+  swaggerUiExpress.setup({}, {
+    swaggerOptions: {
+      url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
+    },
+  })
 );
 
 app.get("/openapi.json", async (req, res, next) => {
@@ -102,16 +103,19 @@ app.get("/openapi.json", async (req, res, next) => {
 
 
 
-app.get('/', (req, res) => {
+app.get('/', authenticateToken, (req, res) => {
   res.send('Hello World!')
+  console.log(req.user)
+
 })
 
-app.post('/groups', handleCreateGroup);
+app.post('/groups', authenticateToken, handleCreateGroup);
 
 app.get('/groups', handleListGroups)
 
 
-app.post('/groups/:groupId', handleInviteUserToGroup)
+app.post('/groups/:groupId', authenticateToken, handleInviteUserToGroup)
+
 
 
 
