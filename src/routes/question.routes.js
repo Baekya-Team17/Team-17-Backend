@@ -7,6 +7,8 @@ import {
 } from "../controllers/question.controller.js";
 import { authenticateToken } from "../middlewares/authMiddleware.js";
 
+const router = express.Router();
+
 /**
  * @swagger
  * /questions:
