@@ -50,24 +50,14 @@ app.use("/", questionRoutes);
 
 // Swagger UI 설정
 app.use(
-  "/docs",
-  swaggerUiExpress.serve,
-  swaggerUiExpress.setup({}, {
-    swaggerOptions: {
-      url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
-    },
-  })
+    "/docs",
+    swaggerUiExpress.serve,
+    swaggerUiExpress.setup({}, {
+      swaggerOptions: {
+        url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
+      },
+    })
 );
-
-// 인증 미들웨어 선언 (Swagger 관련 경로 이후에 위치)
-app.use((req, res, next) => {
-  const openPaths = ["/docs", "/openapi.json", "/favicon.ico"];
-  if (openPaths.some(path => req.originalUrl.startsWith(path))) {
-    return next(); // 인증 없이 진행
-  }
-  authenticateToken(req, res, next); // 나머지 경로에 대해서만 인증 필요
-});
-
 
 app.get("/openapi.json", async (req, res, next) => {
   const options = {
@@ -109,6 +99,14 @@ app.get("/openapi.json", async (req, res, next) => {
 });
 
 
+// 인증 미들웨어 선언 (Swagger 관련 경로 이후에 위치)
+app.use((req, res, next) => {
+  const openPaths = ["/docs", "/openapi.json", "/favicon.ico"];
+  if (openPaths.some(path => req.originalUrl.startsWith(path))) {
+    return next(); // 인증 없이 진행
+  }
+  authenticateToken(req, res, next); // 나머지 경로에 대해서만 인증 필요
+});
 
 
 app.get('/', authenticateToken, (req, res) => {

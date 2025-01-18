@@ -63,15 +63,16 @@ model Question {
 }
 
 model GroupQuestion {
-  id         Int      @id @default(autoincrement())
-  groupId    Int      @map("group_id")
-  questionId Int      @map("question_id")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  groupId     Int      @map("group_id")
+  questionId  Int      @map("question_id")
+  childUserId Int?     @map("child_user_id") // 선택적으로 허용 (nullable)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   group    Group    @relation(fields: [groupId], references: [id])
   question Question @relation(fields: [questionId], references: [id])
-  answers  Answer[]
+  Answer   Answer[]
 }
 
 model Answer {
