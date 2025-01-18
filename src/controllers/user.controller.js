@@ -43,11 +43,38 @@ export const loginUser = async (req, res) => {
     }
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: {
+                userGroups: {
+                    select: {
+                        groupId: true,
+                        roleInGroup: true, // 현재 유저의 역할
+                        group: {
+                            select: {
+                                userGroups: {
+                                    select: {
+                                        roleInGroup: true, // 다른 유저들의 역할
+                                        user: {
+                                            select: {
+                                                id: true,
+                                                email: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
         if (!user) {
             console.error("User not found:", email);
             return res.status(404).json({ error: "User not found" });
         }
+
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -58,7 +85,20 @@ export const loginUser = async (req, res) => {
         console.log("Generating token for user ID:", user.id);
         const token = generateToken(user.id);
 
-        res.status(200).json({ token });
+        // 5. 유저의 그룹 정보 준비
+        const groupInfo = user.userGroups.map((group) => ({
+            groupId: group.groupId,
+            roleInGroup: group.roleInGroup,
+            otherUsers: group.group.userGroups
+                .filter((g) => g.user.id !== user.id) // 본인을 제외
+                .map((g) => ({
+                    id: g.user.id,
+                    email: g.user.email,
+                    roleInGroup: g.roleInGroup, // 그룹 내 역할 추가
+                })),
+        }));
+
+        res.status(200).json({ token, groupInfo });
     } catch (err) {
         console.error("Error during login:", err);
         res.status(500).json({ error: "Failed to login user", details: err.message });
