@@ -48,6 +48,14 @@ app.use("/", protectedRoutes);
 // 질문 관련 라우트 추가
 app.use("/", questionRoutes);
 
+
+app.use((req, res, next) => {
+  console.log(`Request URL: ${req.originalUrl}`);
+  console.log(`Request Path: ${req.path}`);
+  next();
+});
+
+
 // Swagger UI 설정
 app.use(
     "/docs",
@@ -99,14 +107,16 @@ app.get("/openapi.json", async (req, res, next) => {
 });
 
 
-// 인증 미들웨어 선언 (Swagger 관련 경로 이후에 위치)
 app.use((req, res, next) => {
   const openPaths = ["/docs", "/openapi.json", "/favicon.ico"];
-  if (openPaths.some(path => req.originalUrl.startsWith(path))) {
+
+  if (openPaths.includes(req.path)) {
     return next(); // 인증 없이 진행
   }
-  authenticateToken(req, res, next); // 나머지 경로에 대해서만 인증 필요
+
+  authenticateToken(req, res, next); // 그 외 경로는 인증 필요
 });
+
 
 
 app.get('/', authenticateToken, (req, res) => {
