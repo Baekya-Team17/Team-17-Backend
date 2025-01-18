@@ -80,7 +80,14 @@ app.get("/openapi.json", async (req, res, next) => {
       title: "team17",
       description: "team17 테스트 문서",
     },
-    host: "52.78.231.158:3000",
+
+    hosts: ["52.78.231.158:3000", "localhost:3000"],
+
+    hosts: [
+      "52.78.231.158:3000", // 기존 호스트
+      "localhost:3000", // 로컬호스트 추가
+    ],
+
     components: {
       securitySchemes: {
         bearerAuth: {
