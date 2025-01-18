@@ -111,6 +111,7 @@ app.post('/groups', handleCreateGroup);
 app.get('/groups', handleListGroups)
 
 
+app.post('/groups/:groupId', handleInviteUserToGroup)
 
 
 
