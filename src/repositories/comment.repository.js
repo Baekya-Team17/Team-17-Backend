@@ -22,3 +22,21 @@ export const createCommentInDatabase = async (userId, answerId, content) => {
         },
     });
 };
+
+
+// 특정 답변에 대한 댓글 조회
+export const findCommentsByAnswerId = async (answerId) => {
+    return await prisma.comment.findMany({
+        where: {
+            answerId: answerId,
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    nickname: true, // 댓글 작성자 정보 포함
+                },
+            },
+        },
+    });
+};
