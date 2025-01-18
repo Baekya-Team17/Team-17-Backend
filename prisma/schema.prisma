@@ -1,97 +1,117 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 enum role_in_group {
-    parent
-    child
+  parent
+  child
 }
 
 model User {
-    id       Int    @id @default(autoincrement())
-    nickname String @unique
-    email    String @unique
-    password String
-    name     String
+  id       Int    @id @default(autoincrement())
+  nickname String @unique
+  email    String @unique
+  password String
+  name     String
 
-    userGroups UserGroup[]
-    Question   Question[]
-    Comment    Comment[]
+  userGroups UserGroup[]
+  Question   Question[]
+  Comment    Comment[]
+  Reaction   Reaction[] // Reaction 추가
 }
 
 model Group {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    userGroups    UserGroup[]
-    Question      Question[]
-    GroupQuestion GroupQuestion[]
+  userGroups    UserGroup[]
+  answers       Answer[] // Answer 추가
+  Question      Question[]
+  GroupQuestion GroupQuestion[]
 }
 
 model UserGroup {
-    id          Int           @id @default(autoincrement())
-    userId      Int           @map("user_id")
-    groupId     Int           @map("group_id")
-    roleInGroup role_in_group @map("role_in_group")
-    isCreator   Boolean       @default(false) @map("is_creator")
+  id          Int           @id @default(autoincrement())
+  userId      Int           @map("user_id")
+  groupId     Int           @map("group_id")
+  roleInGroup role_in_group @map("role_in_group")
+  isCreator   Boolean       @default(false) @map("is_creator")
 
-    user  User  @relation(fields: [userId], references: [id])
-    group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
 
-    @@unique([userId, groupId])
+  @@unique([userId, groupId])
 }
 
 model Question {
-    id            Int      @id @default(autoincrement())
-    content       String
-    writerId      Int?     @map("writer_id")
-    writerGroupId Int?     @map("writer_group_id")
-    createdAt     DateTime @default(now()) @map("created_at")
-    updatedAt     DateTime @updatedAt @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  content       String
+  writerId      Int?     @map("writer_id")
+  writerGroupId Int?     @map("writer_group_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-    writer        User?           @relation(fields: [writerId], references: [id])
-    group         Group?          @relation(fields: [writerGroupId], references: [id])
-    GroupQuestion GroupQuestion[]
+  writer        User?           @relation(fields: [writerId], references: [id])
+  group         Group?          @relation(fields: [writerGroupId], references: [id])
+  GroupQuestion GroupQuestion[]
+  answers       Answer[] // Answer 추가
 }
 
 model GroupQuestion {
-    id         Int      @id @default(autoincrement())
-    groupId    Int      @map("group_id")
-    questionId Int      @map("question_id")
-    createdAt  DateTime @default(now()) @map("created_at")
-    updatedAt  DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  groupId     Int      @map("group_id")
+  questionId  Int      @map("question_id")
+  childUserId Int?     @map("child_user_id") // 선택적으로 허용 (nullable)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-    group    Group    @relation(fields: [groupId], references: [id])
-    question Question @relation(fields: [questionId], references: [id])
-    answers  Answer[]
+  group    Group    @relation(fields: [groupId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+  Answer   Answer[]
 }
 
 model Answer {
-    id              Int @id @default(autoincrement())
-    groupQuestionId Int @map("group_question_id")
+  id              Int      @id @default(autoincrement())
+  groupQuestionId Int      @map("group_question_id")
+  content         String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-    content   String?  @db.Text
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    comments      Comment[]
-    GroupQuestion GroupQuestion @relation(fields: [groupQuestionId], references: [id])
+  GroupQuestion GroupQuestion @relation(fields: [groupQuestionId], references: [id])
+  comments      Comment[]
+  Group         Group?        @relation(fields: [groupId], references: [id])
+  groupId       Int?
+  Question      Question?     @relation(fields: [questionId], references: [id])
+  questionId    Int?
+  Reaction      Reaction[]
 }
 
 model Comment {
-    id        Int      @id @default(autoincrement())
-    userId    Int      @map("user_id")
-    answerId  Int      @map("answer_id")
-    content   String   @db.Text
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  answerId  Int      @map("answer_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    user   User   @relation(fields: [userId], references: [id])
-    answer Answer @relation(fields: [answerId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  answer Answer @relation(fields: [answerId], references: [id])
+}
+
+model Reaction {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  answerId       Int      @map("answer_id")
+  reactionNumber Int      @map("reaction_type") // 1-5
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  answer Answer @relation(fields: [answerId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 }
