@@ -39,11 +39,23 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: {
+                userGroups: {
+                    select: {
+                        groupId: true,
+                        roleInGroup: true,
+                    },
+                },
+            },
+        });
+
         if (!user) {
             console.error("User not found:", email);
             return res.status(404).json({ error: "User not found" });
         }
+
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -54,7 +66,13 @@ export const loginUser = async (req, res) => {
         console.log("Generating token for user ID:", user.id);
         const token = generateToken(user.id);
 
-        res.status(200).json({ token });
+        // 5. 유저의 그룹 정보 준비
+        const groupInfo = user.userGroups.map((group) => ({
+            groupId: group.groupId,
+            roleInGroup: group.roleInGroup,
+        }));
+
+        res.status(200).json({ token, groupInfo });
     } catch (err) {
         console.error("Error during login:", err);
         res.status(500).json({ error: "Failed to login user", details: err.message });
