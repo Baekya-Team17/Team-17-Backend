@@ -37,7 +37,6 @@ jobs:
 
       - name: Copy Workspace
         run: |
-<<<<<<< HEAD
           ssh team17 'sudo mkdir -p /opt/app'
           ssh team17 'sudo chown ubuntu:ubuntu /opt/app'
           scp -r ./[!.]* team17:/opt/app
@@ -49,7 +48,6 @@ jobs:
       - name: Copy systemd service file
         run: |
           ssh team17 '
-=======
           ssh playground-umc-7th 'sudo mkdir -p /opt/app'
           ssh playground-umc-7th 'sudo chown ubuntu:ubuntu /opt/app'
           scp -r ./[!.]* playground-umc-7th:/opt/app
@@ -61,7 +59,7 @@ jobs:
       - name: Copy systemd service file
         run: |
           ssh playground-umc-7th '
->>>>>>> feature/questions
+
             echo "[Unit]
             Description=UMC 7th Project
             After=network.target
@@ -77,18 +75,15 @@ jobs:
 
       - name: Enable systemd service
         run: |
-<<<<<<< HEAD
           ssh team17 'sudo systemctl daemon-reload'
           ssh team17 'sudo systemctl enable app'
 
       - name: Restart systemd service
         run: |
           ssh team17 'sudo systemctl restart app'
-=======
           ssh playground-umc-7th 'sudo systemctl daemon-reload'
           ssh playground-umc-7th 'sudo systemctl enable app'
 
       - name: Restart systemd service
         run: |
           ssh playground-umc-7th 'sudo systemctl restart app'
->>>>>>> feature/questions
