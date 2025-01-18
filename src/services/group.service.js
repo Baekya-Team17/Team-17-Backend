@@ -34,33 +34,21 @@ export const getUserGroups = async (userId) => {
 };
 
 
-export const inviteUserToGroup = async (requestingUserId, groupId, inviteUserNickname, roleInGroup) => {
-    // 그룹 생성자인지 확인
-    const isCreator = await isGroupCreator(requestingUserId, groupId);
-    if (!isCreator) {
-        throw new Error("해당 그룹의 생성자만 사용자를 초대할 수 있습니다.");
-    }
-
-    // 초대할 사용자 정보 확인 (nickname 기반)
-    const invitedUser = await findUserByNickname(inviteUserNickname);
-    if (!invitedUser) {
-        throw new Error("초대하려는 사용자가 존재하지 않습니다.");
-    }
-
-
-    // 그룹에 이미 속해 있는지 확인
-    const isAlreadyInGroup = await isUserInGroup(groupId, invitedUser.id);
+export const joinGroup = async (userId, groupId, roleInGroup) => {
+    // 그룹에 이미 가입되어 있는지 확인
+    const isAlreadyInGroup = await isUserInGroup(groupId, userId);
     if (isAlreadyInGroup) {
-        throw new Error(`사용자(${inviteUserNickname})는 이미 이 그룹에 속해 있습니다.`);
+        throw new Error("사용자는 이미 이 그룹에 가입되어 있습니다.");
     }
 
     // 그룹에 사용자 추가
-    const newUserGroup = await addUserToGroup(groupId, invitedUser.id, roleInGroup);
+    const newUserGroup = await addUserToGroup(groupId, userId, roleInGroup);
 
     return {
-        inviteUserId: newUserGroup.userId,
+        id: newUserGroup.id,
         groupId: newUserGroup.groupId,
+        userId: newUserGroup.userId,
         roleInGroup: newUserGroup.roleInGroup,
-        isCreator: newUserGroup.isCreator
-    }; // 추가된 사용자-그룹 관계 반환
+        isCreator: newUserGroup.isCreator,
+    };
 };

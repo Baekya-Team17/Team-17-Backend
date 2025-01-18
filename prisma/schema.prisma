@@ -29,8 +29,9 @@ model Group {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    userGroups UserGroup[]
-    answers    Answer[]
+    userGroups    UserGroup[]
+    Question      Question[]
+    GroupQuestion GroupQuestion[]
 }
 
 model UserGroup {
@@ -47,28 +48,40 @@ model UserGroup {
 }
 
 model Question {
-    id        Int      @id @default(autoincrement())
-    content   String
-    writerId  Int?     @map("writer_id")
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+    id            Int      @id @default(autoincrement())
+    content       String
+    writerId      Int?     @map("writer_id")
+    writerGroupId Int?     @map("writer_group_id")
+    createdAt     DateTime @default(now()) @map("created_at")
+    updatedAt     DateTime @updatedAt @map("updated_at")
 
-    writer  User?    @relation(fields: [writerId], references: [id])
-    answers Answer[]
+    writer        User?           @relation(fields: [writerId], references: [id])
+    group         Group?          @relation(fields: [writerGroupId], references: [id])
+    GroupQuestion GroupQuestion[]
+}
+
+model GroupQuestion {
+    id         Int      @id @default(autoincrement())
+    groupId    Int      @map("group_id")
+    questionId Int      @map("question_id")
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt  DateTime @updatedAt @map("updated_at")
+
+    group    Group    @relation(fields: [groupId], references: [id])
+    question Question @relation(fields: [questionId], references: [id])
+    answers  Answer[]
 }
 
 model Answer {
-    id         Int @id @default(autoincrement())
-    groupId    Int @map("group_id")
-    questionId Int @map("question_id")
+    id              Int @id @default(autoincrement())
+    groupQuestionId Int @map("group_question_id")
 
     content   String?  @db.Text
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    group     Group      @relation(fields: [groupId], references: [id])
-    question  Question   @relation(fields: [questionId], references: [id])
-    reactions Reaction[]
+    reactions     Reaction[]
+    GroupQuestion GroupQuestion @relation(fields: [groupQuestionId], references: [id])
 }
 
 model Reaction {

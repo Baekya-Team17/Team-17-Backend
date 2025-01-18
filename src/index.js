@@ -4,7 +4,7 @@ import express from 'express';          // -> ES Module
 import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
-import { handleCreateGroup, handleListGroups, handleInviteUserToGroup } from "./controllers/group.controller.js";
+import { handleCreateGroup, handleListGroupsByEmail, handleListGroupsByToken, handleJoinGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
 // import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
@@ -106,15 +106,16 @@ app.get("/openapi.json", async (req, res, next) => {
 app.get('/', authenticateToken, (req, res) => {
   res.send('Hello World!')
   console.log(req.user)
-
 })
 
 app.post('/groups', authenticateToken, handleCreateGroup);
 
-app.get('/groups', handleListGroups)
+app.get('/mygroups', authenticateToken, handleListGroupsByToken)
+app.get('/groups', handleListGroupsByEmail)
 
 
-app.post('/groups/:groupId', authenticateToken, handleInviteUserToGroup)
+app.post('/groups/:groupId', authenticateToken, handleJoinGroup)
+
 
 
 

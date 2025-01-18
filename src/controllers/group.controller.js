@@ -1,10 +1,11 @@
 import { groupCreate } from "../services/group.service.js";
 import { getUserGroups } from "../services/group.service.js";
-import { inviteUserToGroup } from "../services/group.service.js";
+import { joinGroup } from "../services/group.service.js";
+import { getUserByEmail } from "../services/user.service.js";
 
 export const handleCreateGroup = async (req, res, next) => {
     /*
-#swagger.summary = '사용자-그룹 관계 생성 API'
+#swagger.summary = '그룹 생성 API'
 #swagger.requestBody = {
     required: true,
     content: {
@@ -41,6 +42,8 @@ export const handleCreateGroup = async (req, res, next) => {
 
     console.log('그룹생성 요청');
 
+    console.log(req.user)
+
     if (!req.user || !req.user.id) {
         throw new Error("사용자 인증 정보가 누락되었습니다.");
     }
@@ -53,56 +56,140 @@ export const handleCreateGroup = async (req, res, next) => {
 
     res.success(group);
 }
-
-export const handleListGroups = async (req, res, next) => {
+export const handleListGroupsByEmail = async (req, res, next) => {
     /*
-    #swagger.summary = '사용자 그룹 조회 API'
-    #swagger.description = '사용자가 속한 그룹 리스트를 반환합니다.'
-    #swagger.responses[200] = {
-        description: '사용자 그룹 조회 성공',
-        schema: {
-            resultType: 'SUCCESS',
-            error: null,
-            success: [
-                {
-                    id: 1,
-                    roleInGroup: 'parent',
-                    isCreator: true,
-                    group: {
-                        id: 3,
-                        createdAt: '2023-01-01T12:00:00Z',
-                        updatedAt: '2023-01-02T12:00:00Z'
-                    }
-                }
-            ]
-        }
+#swagger.summary = '이메일로 사용자 그룹 조회 API'
+#swagger.description = '쿼리스트링으로 이메일을 전달하면 해당 이메일 사용자의 그룹을 조회합니다. 인증 토큰 없이 동작합니다.'
+#swagger.parameters['email'] = {
+    in: 'query',
+    description: '조회할 사용자의 이메일',
+    required: true,
+    type: 'string',
+    example: 'test@example.com'
+}
+#swagger.responses[200] = {
+    description: '사용자 그룹 조회 성공',
+    schema: {
+        resultType: 'SUCCESS',
+        error: null,
+        success: [
+            {
+                id: 1,
+                groupName: "Sample Group",
+                createdAt: "2025-01-01T00:00:00.000Z",
+                updatedAt: "2025-01-02T00:00:00.000Z"
+            }
+        ]
     }
+}
+#swagger.responses[404] = {
+    description: '해당 이메일의 사용자를 찾을 수 없음',
+    schema: {
+        resultType: 'FAIL',
+        error: "해당 이메일의 사용자를 찾을 수 없습니다.",
+        success: null
+    }
+}
     */
-
     try {
-        console.log('사용자 그룹 조회 요청');
+        const email = req.query.email;
 
-        if (!req.user || !req.user.id) {
-            throw new Error("사용자 인증 정보가 누락되었습니다.");
+        if (!email) {
+            return res.status(400).json({
+                resultType: "FAIL",
+                error: "이메일이 필요합니다.",
+            });
         }
 
-        const userId = req.user.id;
+        // 이메일로 사용자 조회
+        const user = await getUserByEmail(email);
+        if (!user) {
+            return res.status(404).json({
+                resultType: "FAIL",
+                error: "해당 이메일의 사용자를 찾을 수 없습니다.",
+            });
+        }
 
-        // 서비스 호출하여 그룹 데이터 가져오기
-        const userGroups = await getUserGroups(userId);
+        const userGroups = await getUserGroups(user.id);
 
-        res.success(userGroups);
+        return res.status(200).json({
+            resultType: "SUCCESS",
+            error: null,
+            success: userGroups,
+        });
     } catch (error) {
         console.error(error);
-        next(error);
+        return res.status(500).json({
+            resultType: "FAIL",
+            error: error.message,
+        });
     }
 };
 
-
-export const handleInviteUserToGroup = async (req, res, next) => {
+export const handleListGroupsByToken = async (req, res, next) => {
     /*
-    #swagger.summary = '그룹에 사용자 초대 API'
-    #swagger.description = '그룹 생성자가 그룹에 사용자를 초대합니다.'
+#swagger.summary = '인증된 사용자 그룹 조회 API'
+#swagger.description = '인증 토큰을 사용해 로그인된 사용자의 그룹 정보를 조회합니다.'
+#swagger.responses[200] = {
+    description: '사용자 그룹 조회 성공',
+    schema: {
+        resultType: 'SUCCESS',
+        error: null,
+        success: [
+            {
+                id: 1,
+                groupName: "Sample Group",
+                createdAt: "2025-01-01T00:00:00.000Z",
+                updatedAt: "2025-01-02T00:00:00.000Z"
+            }
+        ]
+    }
+}
+#swagger.responses[401] = {
+    description: '사용자 인증 정보가 누락됨',
+    schema: {
+        resultType: 'FAIL',
+        error: "사용자 인증 정보가 누락되었습니다.",
+        success: null
+    }
+}
+    */
+
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({
+                resultType: "FAIL",
+                error: "사용자 인증 정보가 누락되었습니다.",
+            });
+        }
+
+        const userGroups = await getUserGroups(req.user.id);
+
+        return res.status(200).json({
+            resultType: "SUCCESS",
+            error: null,
+            success: userGroups,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            resultType: "FAIL",
+            error: error.message,
+        });
+    }
+};
+
+export const handleJoinGroup = async (req, res, next) => {
+    /*
+    #swagger.summary = '그룹 가입 API'
+    #swagger.description = 'API를 요청한 사용자가 요청에 포함된 groupId의 그룹에 가입합니다.'
+    #swagger.parameters['groupId'] = {
+        in: 'path',
+        description: '가입할 그룹의 ID',
+        required: true,
+        type: 'integer',
+        example: 1
+    }
     #swagger.requestBody = {
         required: true,
         content: {
@@ -110,11 +197,6 @@ export const handleInviteUserToGroup = async (req, res, next) => {
                 schema: {
                     type: 'object',
                     properties: {
-                        inviteUserNickname: {
-                            type: 'string',
-                            description: '초대할 유저 닉네임임',
-                            example: "userNickname"
-                        },
                         roleInGroup: {
                             type: 'string',
                             enum: ['parent', 'child'],
@@ -122,13 +204,13 @@ export const handleInviteUserToGroup = async (req, res, next) => {
                             example: 'child'
                         }
                     },
-                    required: ['groupId', 'inviteUserId', 'roleInGroup']
+                    required: ['roleInGroup']
                 }
             }
         }
     }
     #swagger.responses[201] = {
-        description: '그룹에 사용자 초대 성공',
+        description: '그룹 가입 성공',
         schema: {
             resultType: 'SUCCESS',
             error: null,
@@ -142,26 +224,25 @@ export const handleInviteUserToGroup = async (req, res, next) => {
         }
     }
     */
-
     try {
-        console.log('그룹에 사용자 초대 요청');
+        console.log('그룹 가입 요청');
 
         if (!req.user || !req.user.id) {
             throw new Error("사용자 인증 정보가 누락되었습니다.");
         }
 
-        const requestingUserId = req.user.id; // 요청한 유저 ID
-
-        const { inviteUserNickname, roleInGroup } = req.body;
-
-        console.log(typeof inviteUserNickname)
-
+        const userId = req.user.id; // 요청한 유저의 ID
+        const { roleInGroup } = req.body;
         const groupId = parseInt(req.params.groupId);
 
         // 서비스 호출하여 그룹에 사용자 추가
-        const newUserGroup = await inviteUserToGroup(requestingUserId, groupId, inviteUserNickname, roleInGroup);
+        const newUserGroup = await joinGroup(userId, groupId, roleInGroup);
 
-        res.status(201).success(newUserGroup);
+        res.status(201).json({
+            resultType: 'SUCCESS',
+            error: null,
+            success: newUserGroup,
+        });
     } catch (error) {
         console.error(error);
         next(error); // 에러 미들웨어로 전달
