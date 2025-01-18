@@ -81,7 +81,7 @@ app.get("/openapi.json", async (req, res, next) => {
       description: "team17 테스트 문서",
     },
 
-    host : "52.78.231.158:3000",
+    host: "52.78.231.158:3000",
 
     components: {
       securitySchemes: {
@@ -111,7 +111,7 @@ app.get('/', authenticateToken, (req, res) => {
   console.log(req.user)
 })
 
-app.post('/groups', authenticateToken, handleCreateGroup);
+app.post('/groups', handleCreateGroup);
 
 app.get('/mygroups', authenticateToken, handleListGroupsByToken)
 app.get('/groups', handleListGroupsByEmail)

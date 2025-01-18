@@ -42,13 +42,8 @@ export const handleCreateGroup = async (req, res, next) => {
 
     console.log('그룹생성 요청');
 
-    console.log(req.user)
+    const userId = req.body.userId;
 
-    if (!req.user || !req.user.id) {
-        throw new Error("사용자 인증 정보가 누락되었습니다.");
-    }
-
-    const userId = req.user.id // 수정 
 
     const roleInGroup = req.body.roleInGroup;
 
