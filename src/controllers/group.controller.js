@@ -42,7 +42,7 @@ export const handleCreateGroup = async (req, res, next) => {
 
     console.log('그룹생성 요청');
 
-    const userId = req.body.userId;
+    const userId = parseInt(req.body.userId);
 
 
     const roleInGroup = req.body.roleInGroup;
