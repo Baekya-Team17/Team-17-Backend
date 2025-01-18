@@ -4,7 +4,7 @@ import express from 'express';          // -> ES Module
 import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
-import { handleCreateGroup } from "./controllers/group.controller.js";
+import { handleCreateGroup, handleListGroups, handleInviteUserToGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 
 
@@ -100,8 +100,9 @@ app.get('/', (req, res) => {
 
 app.post('/groups', handleCreateGroup);
 
+app.get('/groups', handleListGroups)
 
-// 라우팅 코드 입력 부분 
+
 
 
 

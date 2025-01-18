@@ -12,3 +12,15 @@ export const createUserGroup = async (userId, groupId, roleInGroup) => {
     })
     return userGroup;
 }
+
+
+export const getUserGroupsByUserId = async (userId) => {
+    return await prisma.userGroup.findMany({
+        where: {
+            userId: userId,
+        },
+        include: {
+            group: true, // 연관된 Group 데이터 포함
+        },
+    });
+};

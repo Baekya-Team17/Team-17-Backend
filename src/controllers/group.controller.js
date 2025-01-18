@@ -1,4 +1,5 @@
 import { groupCreate } from "../services/group.service.js";
+import { getUserGroups } from "../services/group.service.js";
 
 export const handleCreateGroup = async (req, res, next) => {
     /*
@@ -39,14 +40,11 @@ export const handleCreateGroup = async (req, res, next) => {
 
     console.log('그룹생성 요청');
 
-    // 그룹 생성 및 유저그룹에 데이터 추가 , 역할 추가 
-    // if (!req.user || !req.user.id) {
-    //     throw new Error("사용자 인증 정보가 누락되었습니다.");
-    // }
+    if (!req.user || !req.user.id) {
+        throw new Error("사용자 인증 정보가 누락되었습니다.");
+    }
 
-    // const userId = req.user.id // 수정 
-
-    const userId = 1;
+    const userId = req.user.id // 수정 
 
     const roleInGroup = req.body.roleInGroup;
 
@@ -54,3 +52,49 @@ export const handleCreateGroup = async (req, res, next) => {
 
     res.success(group);
 }
+
+export const handleListGroups = async (req, res, next) => {
+    /*
+    #swagger.summary = '사용자 그룹 조회 API'
+    #swagger.description = '사용자가 속한 그룹 리스트를 반환합니다.'
+    #swagger.responses[200] = {
+        description: '사용자 그룹 조회 성공',
+        schema: {
+            resultType: 'SUCCESS',
+            error: null,
+            success: [
+                {
+                    id: 1,
+                    roleInGroup: 'parent',
+                    isCreator: true,
+                    group: {
+                        id: 3,
+                        createdAt: '2023-01-01T12:00:00Z',
+                        updatedAt: '2023-01-02T12:00:00Z'
+                    }
+                }
+            ]
+        }
+    }
+    */
+
+    try {
+        console.log('사용자 그룹 조회 요청');
+
+        // if (!req.user || !req.user.id) {
+        //     throw new Error("사용자 인증 정보가 누락되었습니다.");
+        // }
+
+        // const userId = req.user.id;
+
+        const userId = 1;
+
+        // 서비스 호출하여 그룹 데이터 가져오기
+        const userGroups = await getUserGroups(userId);
+
+        res.success(userGroups);
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
