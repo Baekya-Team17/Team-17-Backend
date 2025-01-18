@@ -1,70 +1,38 @@
 import express from "express";
-import { createQuestion } from "../controllers/question.controller.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js";
+import {
+    handleCreateQuestion,
+    handleLinkExistingQuestion
+} from "../controllers/question.controller.js";
+import { authenticateToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Questions
- *   description: API to manage questions
- */
+// 인증 미들웨어 적용
+router.use(authenticateToken); // 모든 라우트에 대해 인증을 수행
 
 /**
- * @swagger
- * /questions:
- *   post:
- *     summary: Create a new question
- *     tags: [Questions]
- *     security:
- *       - bearerAuth: []  # 인증이 필요한 엔드포인트
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - content
- *               - groupId
- *             properties:
- *               content:
- *                 type: string
- *                 description: The content of the question
- *               groupId:
- *                 type: integer
- *                 description: The group ID where the question is created
- *     responses:
- *       201:
- *         description: Question created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 question:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     content:
- *                       type: string
- *                     writerId:
- *                       type: integer
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
- *       403:
- *         description: User does not have permission to create a question in this group
- *       500:
- *         description: Internal server error
+ * @route POST /questions
+ * @desc 자녀가 새로운 질문을 생성합니다.
+ * @access Child only
  */
-router.post("/questions", authMiddleware, createQuestion);
+router.post("/questions", (req, res, next) => {
+    console.log("라우터: POST /questions 호출");
+    console.log("요청 본문:", req.body);
+    console.log("사용자 정보:", req.user); // 사용자 정보가 미들웨어에서 설정된 경우
+    next(); // 다음 미들웨어(컨트롤러)로 전달
+}, handleCreateQuestion);
+
+/**
+ * @route POST /groups/:groupId/questions
+ * @desc 기존 질문을 특정 그룹과 연결합니다.
+ * @access Child only
+ */
+router.post("/groups/:groupId/questions", (req, res, next) => {
+    console.log("라우터: POST /groups/:groupId/questions 호출");
+    console.log("요청 본문:", req.body);
+    console.log("사용자 정보:", req.user); // 사용자 정보가 미들웨어에서 설정된 경우
+    next();
+}, handleLinkExistingQuestion);
 
 export default router;
+

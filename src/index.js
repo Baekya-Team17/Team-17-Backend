@@ -7,15 +7,13 @@ import swaggerUiExpress from "swagger-ui-express";
 import { handleCreateGroup, handleListGroups, handleInviteUserToGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
-// import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
+import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
 import { authenticateToken } from "./utils/jwt.utils.js";
-
 
 dotenv.config();
 
 const app = express()
 const port = process.env.PORT;
-
 
 
 /**
@@ -48,17 +46,17 @@ app.use('/', userRoutes);
 // 보호된 API
 app.use("/", protectedRoutes);
 // 질문 관련 라우트 추가
-// app.use("/", questionRoutes);
+app.use("/", questionRoutes);
 
-
+// Swagger UI 설정
 app.use(
-  "/docs",
-  swaggerUiExpress.serve,
-  swaggerUiExpress.setup({}, {
-    swaggerOptions: {
-      url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
-    },
-  })
+    "/docs",
+    swaggerUiExpress.serve,
+    swaggerUiExpress.setup({}, {
+      swaggerOptions: {
+        url: "/openapi.json", // Swagger UI에서 사용할 JSON 문서 경로
+      },
+    })
 );
 
 app.get("/openapi.json", async (req, res, next) => {
@@ -101,12 +99,19 @@ app.get("/openapi.json", async (req, res, next) => {
 });
 
 
+// 인증 미들웨어 선언 (Swagger 관련 경로 이후에 위치)
+app.use((req, res, next) => {
+  const openPaths = ["/docs", "/openapi.json", "/favicon.ico"];
+  if (openPaths.some(path => req.originalUrl.startsWith(path))) {
+    return next(); // 인증 없이 진행
+  }
+  authenticateToken(req, res, next); // 나머지 경로에 대해서만 인증 필요
+});
 
 
 app.get('/', authenticateToken, (req, res) => {
   res.send('Hello World!')
   console.log(req.user)
-
 })
 
 app.post('/groups', authenticateToken, handleCreateGroup);
@@ -118,12 +123,11 @@ app.post('/groups/:groupId', authenticateToken, handleInviteUserToGroup)
 
 
 
-
 /**
  * 전역 오류를 처리하기 위한 미들웨어 : 반드시 라우팅 마지막에 정의
  */
 app.use((err, req, res, next) => { //
-  if (res.headersSent) { //응답 헤더가 이미 전송되었으면 
+  if (res.headersSent) { //응답 헤더가 이미 전송되었으면
     return next(err);
   }
 
