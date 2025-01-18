@@ -4,6 +4,7 @@ import express from 'express';          // -> ES Module
 import cors from "cors";
 import swaggerAutogen from "swagger-autogen";
 import swaggerUiExpress from "swagger-ui-express";
+import { handleCreateGroup } from "./controllers/group.controller.js";
 import userRoutes from "./routes/user.routes.js";
 
 
@@ -96,6 +97,9 @@ app.get("/openapi.json", async (req, res, next) => {
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
+
+app.post('/groups', handleCreateGroup);
+
 
 // 라우팅 코드 입력 부분 
 
