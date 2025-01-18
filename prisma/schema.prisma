@@ -21,7 +21,7 @@ model User {
 
     userGroups UserGroup[]
     Question   Question[]
-    Reaction   Reaction[]
+    Comment    Comment[]
 }
 
 model Group {
@@ -80,18 +80,18 @@ model Answer {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    reactions     Reaction[]
+    comments      Comment[]
     GroupQuestion GroupQuestion @relation(fields: [groupQuestionId], references: [id])
 }
 
-model Reaction {
-    id             Int      @id @default(autoincrement())
-    userId         Int      @map("user_id")
-    answerId       Int      @map("answer_id")
-    reactionNumber Int      @map("reaction_type") //1-5
-    createdAt      DateTime @default(now()) @map("created_at")
-    updatedAt      DateTime @updatedAt @map("updated_at")
+model Comment {
+    id        Int      @id @default(autoincrement())
+    userId    Int      @map("user_id")
+    answerId  Int      @map("answer_id")
+    content   String   @db.Text
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-    answer Answer @relation(fields: [answerId], references: [id])
     user   User   @relation(fields: [userId], references: [id])
+    answer Answer @relation(fields: [answerId], references: [id])
 }
