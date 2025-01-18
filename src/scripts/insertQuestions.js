@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 
 async function insertQuestions() {
     const questions = [];
-
-    fs.createReadStream('/Users/leeeunhak/Desktop/question.csv') // CSV 파일 경로
+    // "C:\Users\USER\Desktop\project\question.csv"
+    fs.createReadStream('/Users/USER/Desktop/project/question.csv') // CSV 파일 경로
         .pipe(csvParser())
         .on('data', (row) => {
             questions.push({

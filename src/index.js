@@ -9,7 +9,8 @@ import userRoutes from "./routes/user.routes.js";
 import protectedRoutes from "./routes/protected.routes.js"; // 보호된 라우트 추가
 // import questionRoutes from "./routes/question.routes.js"; // 질문 라우트 추가
 import { authenticateToken } from "./utils/jwt.utils.js";
-
+import { handleCreateComment, handleGetComments } from "./controllers/comment.controller.js";
+import { handleCreateAnswer, handleGetGroupQuestionList } from "./controllers/answer.controller.js";
 
 dotenv.config();
 
@@ -116,10 +117,13 @@ app.get('/groups', handleListGroupsByEmail)
 
 app.post('/groups/:groupId', authenticateToken, handleJoinGroup)
 
+app.post('/answers/:answerId/comments', authenticateToken, handleCreateComment)
 
+app.get('/answers/:answerId/comments', handleGetComments)
 
+app.post('/groupQuestion/:groupQuestionId/answers', authenticateToken, handleCreateAnswer)
 
-
+app.get('/groups/:groupId/questions', handleGetGroupQuestionList)
 /**
  * 전역 오류를 처리하기 위한 미들웨어 : 반드시 라우팅 마지막에 정의
  */
