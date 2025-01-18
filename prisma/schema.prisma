@@ -1,0 +1,13 @@
+// model Planner {
+//   id          Int      @id @default(autoincrement())
+//   userId      Int
+//   plannerDate DateTime
+//   isCompleted Boolean
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+
+//   // Relationships
+//   user           User            @relation(fields: [userId], references: [id])
+//   tasks          Task[]
+//   sharedPlanners SharedPlanner[]
+// }
