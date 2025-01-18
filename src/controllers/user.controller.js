@@ -38,6 +38,10 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
+    if (!email) {
+        return res.status(400).json({ error: "이메일을 입력해주세요." });
+    }
+
     try {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
